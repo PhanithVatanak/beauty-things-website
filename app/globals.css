@@ -7,6 +7,12 @@
   
   --font-serif: var(--font-serif), Georgia, serif;
   --font-sans: var(--font-sans), sans-serif;
+  
+  --font-kantumruy: var(--font-kantumruy), sans-serif;
+  --font-siemreap: var(--font-siemreap), sans-serif;
+  --font-battambang: var(--font-battambang), sans-serif;
+  --font-koh-santepheap: var(--font-koh-santepheap), sans-serif;
+  --font-moul: var(--font-moul), sans-serif;
 }
 
 @layer base {
@@ -29,4 +35,55 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #FF5FA2;
+}
+
+/* Dynamic Khmer Font families with comprehensive fallback overrides */
+.khmer-font-kantumruy,
+.khmer-font-kantumruy input,
+.khmer-font-kantumruy textarea,
+.khmer-font-kantumruy select,
+.khmer-font-kantumruy button,
+.khmer-font-kantumruy .font-sans,
+.khmer-font-kantumruy .font-serif {
+  font-family: var(--font-kantumruy), sans-serif !important;
+}
+
+.khmer-font-siemreap,
+.khmer-font-siemreap input,
+.khmer-font-siemreap textarea,
+.khmer-font-siemreap select,
+.khmer-font-siemreap button,
+.khmer-font-siemreap .font-sans,
+.khmer-font-siemreap .font-serif {
+  font-family: var(--font-siemreap), sans-serif !important;
+}
+
+.khmer-font-battambang,
+.khmer-font-battambang input,
+.khmer-font-battambang textarea,
+.khmer-font-battambang select,
+.khmer-font-battambang button,
+.khmer-font-battambang .font-sans,
+.khmer-font-battambang .font-serif {
+  font-family: var(--font-battambang), sans-serif !important;
+}
+
+.khmer-font-koh_santepheap,
+.khmer-font-koh_santepheap input,
+.khmer-font-koh_santepheap textarea,
+.khmer-font-koh_santepheap select,
+.khmer-font-koh_santepheap button,
+.khmer-font-koh_santepheap .font-sans,
+.khmer-font-koh_santepheap .font-serif {
+  font-family: var(--font-koh-santepheap), sans-serif !important;
+}
+
+.khmer-font-moul,
+.khmer-font-moul input,
+.khmer-font-moul textarea,
+.khmer-font-moul select,
+.khmer-font-moul button,
+.khmer-font-moul .font-sans,
+.khmer-font-moul .font-serif {
+  font-family: var(--font-moul), sans-serif !important;
 }

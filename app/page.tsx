@@ -925,8 +925,14 @@ export default function HomeView() {
     return cartSubtotal + fee;
   }, [cartSubtotal, isDeliveryFeeIncludedInTotal, deliveryFee]);
 
+  const getKhmerFontClass = () => {
+    if (language !== 'km') return '';
+    const font = storeSettings?.khmerFont || 'KANTUMRUY';
+    return `khmer-font-${font.toLowerCase()}`;
+  };
+
   return (
-    <div className="min-h-screen bg-stone-50/20 text-stone-800 flex flex-col font-sans selection:bg-pink-100 selection:text-primary">
+    <div className={`min-h-screen bg-stone-50/20 text-stone-800 flex flex-col selection:bg-pink-100 selection:text-primary ${language === 'km' ? getKhmerFontClass() : 'font-sans'}`}>
       
       {/* HEADER SECTION */}
       <NavHeader 

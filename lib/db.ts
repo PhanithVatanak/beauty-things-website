@@ -154,6 +154,7 @@ export interface StoreSettings {
   tgOrderCompletedTemplate?: string;
   tgCustomAcceptedTemplate?: string;
   tgCustomRejectedTemplate?: string;
+  khmerFont?: 'KANTUMRUY' | 'SIEMREAP' | 'BATTAMBANG' | 'KOH_SANTEPHEAP' | 'MOUL';
 }
 
 import crypto from 'crypto';
@@ -323,6 +324,7 @@ const INITIAL_SETTINGS: StoreSettings = {
   wingHolder: 'CHHIM BEAUTY THINGS Co.',
   wingNumber: '098 765 432',
   khmerDefaultEnabled: true,
+  khmerFont: 'KANTUMRUY',
   invoicePrintWidth: '80mm',
   invoiceHeaderNote: 'Premium Handmade Press-on Nails\nPhnom Penh, Cambodia',
   invoiceFooterNote: 'Thank you for choosing Beauty Things! Please follow us on Telegram @beautythings_cambodia.',
@@ -371,6 +373,7 @@ class DatabaseManager {
         if (!state.storeSettings.invoiceHeaderNote) state.storeSettings.invoiceHeaderNote = 'Premium Handmade Press-on Nails\nPhnom Penh, Cambodia';
         if (!state.storeSettings.invoiceFooterNote) state.storeSettings.invoiceFooterNote = 'Thank you for choosing Beauty Things! Please follow us on Telegram @beautythings_cambodia.';
         if (!state.storeSettings.deliveryPayMode) state.storeSettings.deliveryPayMode = 'INCLUDE';
+        if (!state.storeSettings.khmerFont) state.storeSettings.khmerFont = 'KANTUMRUY';
         
         // Auto-backfill new telegram template settings if missing
         if (!state.storeSettings.tgOrderAcceptedTemplate) state.storeSettings.tgOrderAcceptedTemplate = INITIAL_SETTINGS.tgOrderAcceptedTemplate;

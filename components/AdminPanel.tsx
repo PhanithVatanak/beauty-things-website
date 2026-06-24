@@ -169,6 +169,8 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
     invoiceHeaderNote: '',
     invoiceFooterNote: '',
     deliveryPayMode: 'INCLUDE',
+    khmerDefaultEnabled: true,
+    khmerFont: 'KANTUMRUY',
     tgOrderAcceptedTemplate: '',
     tgOrderDelayedTemplate: '',
     tgOrderRejectedTemplate: '',
@@ -257,6 +259,8 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
           invoiceHeaderNote: d.invoiceHeaderNote || '',
           invoiceFooterNote: d.invoiceFooterNote || '',
           deliveryPayMode: d.deliveryPayMode || 'INCLUDE',
+          khmerDefaultEnabled: d.khmerDefaultEnabled !== undefined ? d.khmerDefaultEnabled : true,
+          khmerFont: d.khmerFont || 'KANTUMRUY',
           tgOrderAcceptedTemplate: d.tgOrderAcceptedTemplate || '',
           tgOrderDelayedTemplate: d.tgOrderDelayedTemplate || '',
           tgOrderRejectedTemplate: d.tgOrderRejectedTemplate || '',
@@ -2071,13 +2075,45 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
                   </div>
                 </div>
 
-                {/* 5. Telegram Notification Templates */}
+                {/* 5. Localization & Font Settings */}
+                <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200/50 space-y-3">
+                  <h3 className="text-xs font-bold text-stone-900 uppercase">5. Localization & Appearance</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold block text-stone-700">Default Site Language</label>
+                      <select
+                        value={settingsForm.khmerDefaultEnabled ? 'km' : 'en'}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, khmerDefaultEnabled: e.target.value === 'km' })}
+                        className="w-full text-xs px-3 py-2 border rounded bg-white text-stone-750 font-semibold"
+                      >
+                        <option value="km">Khmer (ខ្មែរ)</option>
+                        <option value="en">English (EN)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold block text-stone-700">Khmer Font Style Option</label>
+                      <select
+                        value={settingsForm.khmerFont || 'KANTUMRUY'}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, khmerFont: e.target.value as any })}
+                        className="w-full text-xs px-3 py-2 border rounded bg-white font-semibold text-stone-750"
+                      >
+                        <option value="KANTUMRUY">Kantumruy Pro (Modern Sans-Serif)</option>
+                        <option value="SIEMREAP">Siemreap (Traditional Readable)</option>
+                        <option value="BATTAMBANG">Battambang (Standard Clear)</option>
+                        <option value="KOH_SANTEPHEAP">Koh Santepheap (Modern Serif-style)</option>
+                        <option value="MOUL">Moul (Traditional Calligraphy)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 6. Telegram Notification Templates */}
                 <div className="p-6 bg-purple-50/5 rounded-3xl border border-purple-200/40 space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <h3 className="text-sm font-bold text-stone-900 flex items-center gap-2">
                         <FileText className="w-5 h-5 text-purple-600" />
-                        <span>5. Telegram Customer Notification Templates</span>
+                        <span>6. Telegram Customer Notification Templates</span>
                       </h3>
                       <p className="text-xs text-stone-500 mt-1 font-sans">
                         Customize HTML-formatted notification messages sent to customers on Telegram chat.

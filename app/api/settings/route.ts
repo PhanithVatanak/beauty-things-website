@@ -29,6 +29,7 @@ export async function PUT(req: NextRequest) {
       wingHolder: body.wingHolder !== undefined ? body.wingHolder : current.wingHolder,
       wingNumber: body.wingNumber !== undefined ? body.wingNumber : current.wingNumber,
       khmerDefaultEnabled: body.khmerDefaultEnabled !== undefined ? !!body.khmerDefaultEnabled : current.khmerDefaultEnabled,
+      khmerFont: body.khmerFont !== undefined ? body.khmerFont : current.khmerFont,
       invoicePrintWidth: body.invoicePrintWidth !== undefined ? body.invoicePrintWidth : current.invoicePrintWidth,
       invoiceHeaderNote: body.invoiceHeaderNote !== undefined ? body.invoiceHeaderNote : current.invoiceHeaderNote,
       invoiceFooterNote: body.invoiceFooterNote !== undefined ? body.invoiceFooterNote : current.invoiceFooterNote,
