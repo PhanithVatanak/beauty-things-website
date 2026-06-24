@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ClipboardCheck, CreditCard, Sparkles, Settings, FileText, RefreshCw, 
   CheckCircle, XCircle, Clock, Trash2, Plus, Edit, DollarSign, ExternalLink, ShieldCheck, Mail,
-  Lock, LogOut, Eye, EyeOff, ShoppingBag, Users, Printer, Check, Undo
+  Lock, LogOut, Eye, EyeOff, ShoppingBag, Users, Printer, Check, Undo, Search
 } from 'lucide-react';
 import { SellerReasonType } from '@/lib/db';
 
@@ -138,6 +138,8 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
   // PRODUCT CRUD STATE
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [productForm, setProductForm] = useState({
     name: '',
     price: '',
@@ -357,6 +359,15 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
 
     return Object.values(customersMap);
   }, [orders]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+        (p.description || '').toLowerCase().includes(productSearchQuery.toLowerCase());
+      const matchesCategory = productCategoryFilter === 'All' || p.category.toLowerCase() === productCategoryFilter.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, productSearchQuery, productCategoryFilter]);
 
   // 1. Submit seller approval / accept-delay options
   const handleDecisionSubmit = async (e: React.FormEvent) => {
@@ -614,6 +625,24 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
       notify('Network malfunction.', 'error');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const toggleFormShape = (shape: string) => {
+    const current = [...productForm.shapes];
+    if (current.includes(shape)) {
+      setProductForm({ ...productForm, shapes: current.filter(s => s !== shape) });
+    } else {
+      setProductForm({ ...productForm, shapes: [...current, shape] });
+    }
+  };
+
+  const toggleFormLength = (length: string) => {
+    const current = [...productForm.lengths];
+    if (current.includes(length)) {
+      setProductForm({ ...productForm, lengths: current.filter(l => l !== length) });
+    } else {
+      setProductForm({ ...productForm, lengths: [...current, length] });
     }
   };
 
@@ -1674,12 +1703,33 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
 
           {/* TAB 4: PRODUCTS CRUD CONFIGURATION */}
           {activeTab === 'products' && (
-            <div className="space-y-6" id="tab-admin-products">
-              <div className="flex justify-between items-center bg-stone-50 p-4 rounded-xl border border-stone-100">
-                <div>
-                  <h3 className="text-xs font-bold text-stone-900">Products Catalog Registry</h3>
-                  <p className="text-[10px] text-stone-400">Quickly add, modify options, or delete nail designs</p>
+            <div className="space-y-6 animate-fadeIn" id="tab-admin-products">
+              
+              {/* Product Search and Filter Bar */}
+              <div className="flex flex-col sm:flex-row gap-3 bg-stone-50 p-4 rounded-2xl border border-stone-200/50 items-center justify-between shadow-xs">
+                <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto flex-1">
+                  <div className="relative flex-1 max-w-xs">
+                    <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Search nail designs..."
+                      value={productSearchQuery}
+                      onChange={(e) => setProductSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 border border-stone-200 rounded-xl text-xs bg-white focus:outline-none focus:border-[#FF5FA2]"
+                    />
+                  </div>
+                  <select
+                    value={productCategoryFilter}
+                    onChange={(e) => setProductCategoryFilter(e.target.value)}
+                    className="px-3 py-2 border border-stone-200 rounded-xl text-xs bg-white font-semibold text-stone-700 focus:outline-none focus:border-[#FF5FA2]"
+                  >
+                    <option value="All">All Categories</option>
+                    {['Classic', 'Luxury', 'Cute', 'Elegant', 'Minimalist'].map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
+                
                 <button
                   type="button"
                   onClick={() => {
@@ -1691,185 +1741,114 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
                     });
                     setIsProductFormOpen(true);
                   }}
-                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-full font-bold text-xs flex items-center space-x-1 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2 bg-stone-900 hover:bg-stone-850 text-white rounded-full font-bold text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Insert New Nail Art</span>
                 </button>
               </div>
 
-              {/* Product list catalog */}
-              {isProductFormOpen ? (
-                <form onSubmit={handleProductSubmit} className="border border-pink-100 p-6 rounded-3xl space-y-4 max-w-xl bg-pink-50/5 animate-fadeIn" id="product-crud-form">
-                  <h4 className="font-serif font-bold text-stone-900">{editingProduct ? 'Update Product Details' : 'Add New Handcrafted Press-On'}</h4>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold block">Design Name *</label>
-                      <input
-                        type="text"
-                        required
-                        value={productForm.name}
-                        onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                        placeholder="e.g. Starry Velvet Ribbon"
-                        className="w-full px-3 py-2 text-xs border rounded focus:outline-primary"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold block">Retail Base Price ($USD) *</label>
-                      <input
-                        type="number"
-                        required
-                        step="0.01"
-                        value={productForm.price}
-                        onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                        placeholder="25.00"
-                        className="w-full px-3 py-2 text-xs border rounded font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold block">Category *</label>
-                      <select
-                        value={productForm.category}
-                        onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                        className="w-full px-3 py-2 text-xs border rounded font-semibold text-stone-700"
-                      >
-                        {['Classic', 'Luxury', 'Cute', 'Elegant', 'Minimalist'].map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold block">Crafting Time</label>
-                      <input
-                        type="text"
-                        value={productForm.productionTime}
-                        onChange={(e) => setProductForm({ ...productForm, productionTime: e.target.value })}
-                        placeholder="3-5 days"
-                        className="w-full px-3 py-2 text-xs border rounded"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="flex items-center space-x-2 text-xs font-semibold text-stone-750">
-                      <input
-                        type="checkbox"
-                        checked={productForm.isBestSeller}
-                        onChange={(e) => setProductForm({ ...productForm, isBestSeller: e.target.checked })}
-                      />
-                      <span>Promote as Best Seller</span>
-                    </label>
-                    <label className="flex items-center space-x-2 text-xs font-semibold text-stone-750">
-                      <input
-                        type="checkbox"
-                        checked={productForm.isNewArrival}
-                        onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
-                      />
-                      <span>Mark Tag as New Arrival</span>
-                    </label>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold block">Image Link URL</label>
-                    <input
-                      type="text"
-                      value={productForm.images[0]}
-                      onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
-                      placeholder="https://picsum.photos/seed/nail_art_name/600/600"
-                      className="w-full px-3 py-2 text-xs border rounded font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold block">Description</label>
-                    <textarea
-                      rows={3}
-                      value={productForm.description}
-                      onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                      placeholder="Meticulously catalog luxury press-on nail ingredients."
-                      className="w-full px-3 py-2 text-xs border rounded focus:outline-primary"
-                    />
-                  </div>
-
-                  <div className="flex space-x-2 justify-end pt-3">
-                    <button
-                      type="button"
-                      onClick={() => setIsProductFormOpen(false)}
-                      className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-full cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={actionLoading}
-                      className="px-5 py-2 bg-[#FF5FA2] hover:bg-pink-600 text-white text-xs font-bold rounded-full shadow-sm cursor-pointer"
-                    >
-                      Save to Catalog
-                    </button>
-                  </div>
-                </form>
+              {/* Products Table Database List */}
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-20 text-stone-400 text-xs italic border border-dashed rounded-3xl bg-stone-50/50">
+                  No products found matching the criteria. Click "Insert New Nail Art" to add one!
+                </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  {products.map(p => (
-                    <div key={p.id} className="border border-stone-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-shadow relative">
-                      <div className="h-36 bg-stone-100 relative">
-                        <img
-                          src={p.images?.[0] || 'https://picsum.photos/seed/nail/600/600'}
-                          alt={p.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <span className="absolute top-2 left-2 bg-[#FFD6E7] text-[#FF5FA2] text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full">
-                          {p.category}
-                        </span>
-                      </div>
-                      <div className="p-3.5 space-y-1 bg-white">
-                        <h4 className="text-xs font-bold text-stone-900 truncate">{p.name}</h4>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold font-mono text-[#D4A373]">${p.price.toFixed(2)}</span>
-                          <span className="text-[10px] text-stone-400 font-sans italic">{p.productionTime}</span>
-                        </div>
-                        <div className="flex space-x-1.5 justify-end pt-3 border-t border-stone-50 mt-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingProduct(p);
-                              setProductForm({
-                                name: p.name,
-                                price: p.price.toString(),
-                                category: p.category,
-                                description: p.description,
-                                shapes: p.shapes || ['Almond', 'Coffin'],
-                                lengths: p.lengths || ['Short', 'Medium'],
-                                productionTime: p.productionTime || '3-5 days',
-                                isBestSeller: !!p.isBestSeller,
-                                isNewArrival: !!p.isNewArrival,
-                                images: p.images || ['']
-                              });
-                              setIsProductFormOpen(true);
-                            }}
-                            className="p-1.5 border border-stone-200 hover:border-pink-300 rounded text-stone-600 hover:text-primary transition-colors cursor-pointer"
-                            title="Edit Nail design specifications"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          {currentUser?.role !== 'support' && (
+                <div className="overflow-x-auto border border-stone-200/60 rounded-3xl bg-white shadow-xs">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-stone-100 text-stone-400 font-bold uppercase tracking-wider bg-stone-50/50">
+                        <th className="py-3 px-4 w-20 text-center">Design</th>
+                        <th className="py-3 px-4">Name & Category</th>
+                        <th className="py-3 px-4 font-mono">Price</th>
+                        <th className="py-3 px-4">Crafting</th>
+                        <th className="py-3 px-4">Shapes & Lengths</th>
+                        <th className="py-3 px-4">Status Tags</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-50">
+                      {filteredProducts.map((p) => (
+                        <tr key={p.id} className="hover:bg-stone-50/30 transition-colors">
+                          <td className="py-3 px-4 text-center">
+                            <img
+                              src={p.images?.[0] || 'https://picsum.photos/seed/nail/600/600'}
+                              alt={p.name}
+                              className="w-10 h-10 rounded-xl object-cover border border-stone-150 mx-auto shadow-xs"
+                            />
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-stone-900">{p.name}</div>
+                            <div className="text-[9px] text-stone-400 font-extrabold tracking-wide uppercase mt-0.5">{p.category}</div>
+                          </td>
+                          <td className="py-3 px-4 font-mono font-bold text-stone-750">
+                            ${p.price.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-4 text-stone-500 font-sans font-medium">
+                            {p.productionTime || '3-5 days'}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-wrap gap-1 max-w-[220px]">
+                              {(p.shapes || []).map((sh: string) => (
+                                <span key={sh} className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded-md text-[9px] font-sans font-semibold border border-stone-200/50">{sh}</span>
+                              ))}
+                              {(p.lengths || []).map((le: string) => (
+                                <span key={le} className="px-1.5 py-0.5 bg-pink-50/50 text-[#FF5FA2] rounded-md text-[9px] font-sans font-semibold border border-pink-100">{le}</span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-1.5">
+                              {p.isBestSeller && (
+                                <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-full bg-amber-50 text-amber-700 border border-amber-100">Best Seller</span>
+                              )}
+                              {p.isNewArrival && (
+                                <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-full bg-blue-50 text-blue-600 border border-blue-100">New</span>
+                              )}
+                              {!p.isBestSeller && !p.isNewArrival && (
+                                <span className="text-[10px] text-stone-400 italic">Standard</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
                             <button
                               type="button"
-                              onClick={() => deleteProduct(p.id)}
-                              className="p-1.5 border border-red-200 text-red-500 hover:bg-red-50 rounded cursor-pointer"
-                              title="Remove design"
+                              onClick={() => {
+                                setEditingProduct(p);
+                                setProductForm({
+                                  name: p.name,
+                                  price: p.price.toString(),
+                                  category: p.category,
+                                  description: p.description,
+                                  shapes: p.shapes || ['Almond', 'Coffin', 'Square'],
+                                  lengths: p.lengths || ['Short', 'Medium', 'Long'],
+                                  productionTime: p.productionTime || '3-5 days',
+                                  isBestSeller: !!p.isBestSeller,
+                                  isNewArrival: !!p.isNewArrival,
+                                  images: p.images || ['']
+                                });
+                                setIsProductFormOpen(true);
+                              }}
+                              className="p-1.5 border border-stone-200 hover:border-pink-300 rounded-lg text-stone-600 hover:text-primary transition-colors cursor-pointer inline-block"
+                              title="Edit design specifications"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Edit className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                            {currentUser?.role !== 'support' && (
+                              <button
+                                type="button"
+                                onClick={() => deleteProduct(p.id)}
+                                className="p-1.5 border border-red-150 hover:bg-red-50 rounded-lg text-red-500 cursor-pointer inline-block transition-colors"
+                                title="Remove design from catalog"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
@@ -2654,6 +2633,220 @@ export default function AdminPanel({ showToast, currentUser, onImpersonate }: Ad
               </div>
 
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCT CRUD FORM MODAL */}
+      {isProductFormOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn" id="product-crud-modal">
+          <div className="bg-white border border-stone-200 rounded-[32px] p-6 max-w-xl w-full shadow-2xl space-y-5 relative my-8 animate-scaleUp">
+            
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setIsProductFormOpen(false);
+                setEditingProduct(null);
+              }}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 transition-colors cursor-pointer"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+
+            {/* Modal Title */}
+            <div className="space-y-1 pr-8">
+              <span className="text-[10px] font-mono tracking-wider text-stone-400 uppercase">Product Specifications Manager</span>
+              <h3 className="font-serif text-xl font-bold text-stone-900">
+                {editingProduct ? 'Modify Nail Design Details' : 'Add New Handcrafted Press-On'}
+              </h3>
+            </div>
+
+            <form onSubmit={handleProductSubmit} className="space-y-4" id="product-crud-form">
+              
+              {/* Name & Price */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold block text-stone-700">Design Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.name}
+                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                    placeholder="e.g. Starry Velvet Ribbon"
+                    className="w-full px-3 py-2 text-xs border border-stone-200 rounded-xl focus:outline-primary bg-stone-50/20"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold block text-stone-700">Retail Base Price ($USD) *</label>
+                  <input
+                    type="number"
+                    required
+                    step="0.01"
+                    value={productForm.price}
+                    onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                    placeholder="25.00"
+                    className="w-full px-3 py-2 text-xs border border-stone-200 rounded-xl font-mono focus:outline-primary bg-stone-50/20"
+                  />
+                </div>
+              </div>
+
+              {/* Category & Crafting Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold block text-stone-700">Category *</label>
+                  <select
+                    value={productForm.category}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                    className="w-full px-3 py-2 text-xs border border-stone-200 rounded-xl font-semibold text-stone-700 focus:outline-primary bg-stone-50/20"
+                  >
+                    {['Classic', 'Luxury', 'Cute', 'Elegant', 'Minimalist'].map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold block text-stone-700">Crafting / Production Time</label>
+                  <input
+                    type="text"
+                    value={productForm.productionTime}
+                    onChange={(e) => setProductForm({ ...productForm, productionTime: e.target.value })}
+                    placeholder="e.g. 3-5 days"
+                    className="w-full px-3 py-2 text-xs border border-stone-200 rounded-xl focus:outline-primary bg-stone-50/20"
+                  />
+                </div>
+              </div>
+
+              {/* Available Shapes selector toggles */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold block text-stone-700">Available Shapes Option (Select all that apply) *</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Almond', 'Coffin', 'Square', 'Round', 'Oval', 'Stiletto'].map(shape => {
+                    const isSelected = productForm.shapes.includes(shape);
+                    return (
+                      <button
+                        type="button"
+                        key={shape}
+                        onClick={() => toggleFormShape(shape)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#FF5FA2] border-[#FF5FA2] text-white shadow-xs'
+                            : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        {shape}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Available Lengths selector toggles */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold block text-stone-700">Available Lengths Option *</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Short', 'Medium', 'Long', 'Extra Long'].map(length => {
+                    const isSelected = productForm.lengths.includes(length);
+                    return (
+                      <button
+                        type="button"
+                        key={length}
+                        onClick={() => toggleFormLength(length)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#FF5FA2] border-[#FF5FA2] text-white shadow-xs'
+                            : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        {length}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Image URL with Mock Seed Generator button */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold block text-stone-700">Design Image Link URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={productForm.images[0]}
+                    onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
+                    placeholder="https://example.com/nails.jpg"
+                    className="flex-1 px-3 py-2 text-xs border border-stone-200 rounded-xl font-mono focus:outline-primary bg-stone-50/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const seed = Math.floor(Math.random() * 10000);
+                      const randomUrl = `https://picsum.photos/seed/nail_design_${seed}/600/600`;
+                      setProductForm({ ...productForm, images: [randomUrl] });
+                    }}
+                    className="px-3.5 py-2 border border-stone-200 hover:border-pink-300 text-stone-600 hover:text-primary rounded-xl text-xs font-bold bg-stone-50 flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Generate unique mockup placeholder image URL"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    <span className="hidden sm:inline">Mock Image</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Promotion Checkboxes */}
+              <div className="grid grid-cols-2 gap-4 py-1">
+                <label className="flex items-center space-x-2 text-xs font-semibold text-stone-750 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={productForm.isBestSeller}
+                    onChange={(e) => setProductForm({ ...productForm, isBestSeller: e.target.checked })}
+                    className="rounded text-primary border-stone-300 focus:ring-primary w-4 h-4 cursor-pointer"
+                  />
+                  <span>Promote as Best Seller</span>
+                </label>
+                <label className="flex items-center space-x-2 text-xs font-semibold text-stone-750 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={productForm.isNewArrival}
+                    onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
+                    className="rounded text-primary border-stone-300 focus:ring-primary w-4 h-4 cursor-pointer"
+                  />
+                  <span>Mark Tag as New Arrival</span>
+                </label>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold block text-stone-700">Product Description</label>
+                <textarea
+                  rows={2}
+                  value={productForm.description}
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                  placeholder="Meticulously catalog luxury press-on nail ingredients."
+                  className="w-full px-3 py-2 text-xs border border-stone-200 rounded-xl focus:outline-primary bg-stone-50/20"
+                />
+              </div>
+
+              {/* Form buttons */}
+              <div className="flex space-x-2 justify-end pt-3 border-t border-stone-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProductFormOpen(false);
+                    setEditingProduct(null);
+                  }}
+                  className="px-4 py-2 bg-stone-150 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-full cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading}
+                  className="px-5 py-2 bg-primary hover:bg-pink-650 text-white text-xs font-extrabold rounded-full shadow-md hover:shadow-lg cursor-pointer transition-all uppercase tracking-wider"
+                >
+                  {actionLoading ? 'Saving...' : 'Save to Catalog'}
+                </button>
+              </div>
+
+            </form>
           </div>
         </div>
       )}
