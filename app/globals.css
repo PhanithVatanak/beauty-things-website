@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF5FA2;
+  --color-secondary: #FFD6E7;
+  --color-accent: #D4A373;
+  
+  --font-serif: var(--font-serif), Georgia, serif;
+  --font-sans: var(--font-sans), sans-serif;
+}
+
+@layer base {
+  body {
+    @apply selection:bg-[#FFD6E7] selection:text-[#FF5FA2];
+  }
+}
+
+/* Luxury scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #FFD6E7;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF5FA2;
+}

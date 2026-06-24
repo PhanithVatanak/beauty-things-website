@@ -1,0 +1,6 @@
+{
+  "name": "Beauty Things",
+  "description": "Premium Cambodia-based custom handmade press-on nail studio. Browse gorgeous designs, place custom press-on orders, and track your approvals in real time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
